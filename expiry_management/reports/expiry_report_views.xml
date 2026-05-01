@@ -1,0 +1,49 @@
+<odoo>
+    <data>
+        <record id="action_expiring_reporting" model="ir.actions.act_window">
+            <field name="name">Reporting</field>
+            <field name="res_model">stock.lot</field>
+
+            <field name="view_mode">pivot,graph</field>
+
+            <field name="domain">[('is_expired_unsold', '=', True)]</field>
+
+            <field name="context">{
+                'pivot_measures': ['total_loss_value', 'stored_product_qty'],
+                'pivot_orderby': 'total_loss_value desc',
+
+                'graph_mode': 'bar',
+                'graph_measures': ['total_loss_value'],
+            }</field>
+
+        </record>
+
+        <record id="view_expiring_reporting_search" model="ir.ui.view">
+            <field name="name">stock.lot.expiring.reporting.search</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <search string="Reporting">
+
+                    <field name="total_loss_value"/>
+                    <field name="stored_product_qty"/>
+
+                    <filter name="Expired_Unsold" string="Đã hết hạn chưa xử lý" domain="[('is_expired_unsold', '=', True)]"/>
+
+                    <group expand="0" string="Group By">
+                        <filter string="Sản phẩm" name="group_product" context="{'group_by':'product_id'}"/>
+                    </group>
+                </search>
+             </field>
+        </record>
+
+        <menuitem
+            id="menu_expiring_reporting_action"
+            name="Reporting"
+            parent="menu_expiring_lots_parent"
+            action="action_expiring_reporting"
+            groups="group_expiry_manager"
+            sequence="10"
+        />
+
+    </data>
+</odoo>

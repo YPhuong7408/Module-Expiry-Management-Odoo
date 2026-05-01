@@ -1,0 +1,99 @@
+<odoo>
+    <data>
+        <record id="view_expiring_lots_tree" model="ir.ui.view">
+            <field name="name">stock.lot.expiring.tree</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <tree string="Lô Sản Phẩm Sắp Hết Hạn" create = 'false' decoration-danger="days_to_expire &lt; 10">
+                    <field name="product_id"/>
+                    <field name="name"/>
+                    <field name="product_qty" sum="On hand"/>
+                    <field name="expiration_date" string="Expiration Date"/>
+                    <field name="days_to_expire" string="Days Remaining"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_expiring_lots" model="ir.actions.act_window">
+            <field name="name">Product Expiration Alert</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_expiring_lots_tree"/>
+            <field name="domain">[
+                ('expiration_date', '!=', False),
+                ('expiration_date', '&gt;=', context_today()),
+                ('expiration_date', '&lt;=', (context_today() + datetime.timedelta(days=30)).strftime('%Y-%m-%d')),
+        
+                ('product_qty', '>', 0),
+            ]</field>
+        </record>
+
+        <record id="view_expiring_lot_search" model="ir.ui.view">
+            <field name="name">stock.lot.search</field>
+            <field name="model">stock.lot</field>
+            <field name="arch" type="xml">
+                <search string="Tìm kiếm Lô hàng">
+            
+                    <filter 
+                        string="Sắp Hết Hạn 30 ngày" 
+                        name="filter_expiry_30_days" 
+                        domain="[('days_to_expire', '&gt;', 0), ('days_to_expire', '&lt;', 30)]"
+                    />
+            
+                </search>
+            </field>
+        </record>
+
+        <record id="action_production_lot_form" model="ir.actions.act_window">
+            <field name="name">Lot/Serial Numbers</field>
+            <field name="res_model">stock.lot</field>
+            <field name="view_mode">tree,form</field> 
+    
+                <field name="context">{
+                    'search_default_filter_expiry_30_days': 1, 
+                }</field>
+    
+                <field name="search_view_id" ref="view_expiring_lot_search"/>
+        </record>
+
+        <record id="ir_cron_alert_expiring_lots" model="ir.cron">
+            <field name="name">Cảnh Báo Lô Sắp Hết Hạn Email (10 ngày)</field>
+            <field name="model_id" ref="stock.model_stock_lot"/>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+
+            <field name="code">model.send_expiry_alert_email()</field>
+
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">False</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(hours=1)).strftime('%Y-%m-%d')"/>
+        </record>
+
+        <menuitem
+            id="menu_expiring_lots_parent"
+            name="Expiry Management"
+            groups="group_expiry_user,group_expiry_manager"
+            sequence="100"
+        />
+        <menuitem
+            id="menu_expiring_lots_child"
+            name="Expiring Products"
+            parent="menu_expiring_lots_parent"
+            action="action_expiring_lots"
+            groups="group_expiry_user,group_expiry_manager"
+            sequence="1"
+        />
+        <menuitem
+            id="menu_expiring_reporting_action"
+            name="Reporting"
+            parent="menu_expiring_lots_parent"
+            action="action_expiring_reporting"
+            groups="group_expiry_manager"
+            sequence="10"
+        />
+
+
+    </data>
+</odoo>

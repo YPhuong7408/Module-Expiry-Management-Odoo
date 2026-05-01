@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_lot_user_read,Lot User Read Access,model_stock_lot,group_expiry_user,1,0,0,0
+access_lot_manager_all,Lot Manager All Access,model_stock_lot,group_expiry_manager,1,1,1,1
